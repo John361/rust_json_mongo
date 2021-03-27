@@ -1,8 +1,14 @@
 use mongodb::{
-    bson::{doc, Bson},
-    sync::{Client, Collection, Database}
+    bson::{
+        Bson,
+        oid::ObjectId,
+        Document as BsonDocument,
+        to_bson as to_bson
+    },
+    sync::{Client, Collection, Database},
+    error as mongoError
 };
-use mongodb::results::InsertOneResult;
+use serde::{Serialize};
 
 const MONGO_DB: &str = "rust";
 const MONGO_URI: &str = "mongodb://rustUser:rustPass@localhost/rust?w=majority";
@@ -20,23 +26,29 @@ impl MongoDomain {
 }
 
 impl MongoDomain {
-    fn connect(&self) -> mongodb::sync::Database {
-        let client: mongodb::sync::Client = Client::with_uri_str(MONGO_URI)
+    fn connect(&self) -> Database {
+        let client: Client = Client::with_uri_str(MONGO_URI)
             .expect("Cannot connect to database");
 
         client.database(MONGO_DB)
     }
 
-    fn get_collection(&self) -> mongodb::sync::Collection {
+    fn get_collection(&self) -> Collection {
         self.connect().collection(self.collection.as_str())
     }
 
-    pub fn insert(&self, serializable: &impl Serialize) -> Result<mongodb::bson::oid::ObjectId, mongodb::error::Error> {
-        let bson: mongodb::bson::Bson = mongodb::bson::to_bson(serializable)?;
-        let document: &Document = bson.as_document()?;
-        let result: mongodb::results::InsertOneResult = self.get_collection().insert_one(document, None)?;
-        let id = result.inserted_id.as_object_id()?;
+    pub fn insert(&self, serializable: &impl Serialize) -> Result<bool, mongoError::Error> {
+        let bson: Bson = to_bson(&serializable).unwrap_or_else(|error| {
+            panic!("Given object cannot be serialized: {:?}", error);
+        });
 
-        Ok(id)
+        let document: BsonDocument = bson.as_document().unwrap_or_else(|| {
+            panic!("Given object cannot be converted as document");
+        }).clone();
+
+        match self.get_collection().insert_one(document, None) {
+            Ok(_) => Ok(true),
+            Err(error) => Err(error)
+        }
     }
 }

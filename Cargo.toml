@@ -1,0 +1,15 @@
+[package]
+name = "json_to_mongo"
+version = "0.1.0"
+authors = ["Hoareau John <hxjwork1@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+domain = { path = "./domain", version = "0.1.0" }
+
+[workspace]
+members = [
+    "domain"
+]

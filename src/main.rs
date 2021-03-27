@@ -1,29 +1,20 @@
-
-use domain;
+use domain::{
+    user as domain_user,
+    mongo as domain_mongo
+};
+use std::str::FromStr;
 
 fn main() {
-    domain::user::User::new(String::from("John"), String::from("Doe"), 10);
+    let mongo = domain_mongo::MongoDomain::new(domain::user::User::collection_name());
+    let user = domain_user::User::new(String::from("John"), String::from("Doe"), 10);
 
-}
+    match mongo.insert(&user) {
+        Ok(_) => println!("User was inserted"),
+        Err(error) => println!("User was not inserted: {:?}", error)
+    }
 
-fn populate_json() {
-    // TODO: create file, replace if exist
-    // TODO: create User struct list with arbitrary value
-    // TODO: write list as json into file
-}
-
-fn read_json() {
-    // TODO: create file, call populate_json if not exists
-    // TODO: read all lines as Vec<User>
-}
-
-// Create a new collection using given name
-// Remove the collection if it already exists
-fn create_collection(name: String) {
-
-}
-
-fn insert_db() {
-    // TODO: add User struct as parameter
-    // TODO: add it in database
+    match mongo.get_one_user(domain_mongo::ObjectId::from_str("605f3f77003f938b00690bcb").unwrap()) {
+        Some(user) => println!("User found: {:#?}", user),
+        None => println!("Cannot found user")
+    }
 }

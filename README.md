@@ -1,4 +1,4 @@
-# Json to mongo in Rust
+# Rust Json/Mongo
 This project is intended to put Rust into practice.
 
 It is a hard language but with powerful features.

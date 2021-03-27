@@ -1,10 +1,10 @@
-use mongodb::bson;
+use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    id: Option<bson::oid::ObjectId>,
+    pub id: Option<ObjectId>,
     pub first_name: String,
     pub last_name: String,
     is_active: bool
@@ -17,15 +17,11 @@ impl User {
         }
 
         User {
-            id: Some(bson::oid::ObjectId::new()),
+            id: Some(ObjectId::new()),
             first_name,
             last_name,
             is_active: true
         }
-    }
-
-    pub fn age(&self) -> u8 {
-        self.age
     }
 
     pub fn is_active(&self) -> bool {

@@ -1,14 +1,18 @@
 use mongodb::{
     bson::{
+        doc,
         Bson,
-        oid::ObjectId,
         Document as BsonDocument,
-        to_bson as to_bson
+        to_bson,
+        from_bson
     },
     sync::{Client, Collection, Database},
     error as mongoError
 };
 use serde::{Serialize};
+use crate::user::User;
+
+pub use mongodb::bson::oid::ObjectId;
 
 const MONGO_DB: &str = "rust";
 const MONGO_URI: &str = "mongodb://rustUser:rustPass@localhost/rust?w=majority";
@@ -33,8 +37,8 @@ impl MongoDomain {
         client.database(MONGO_DB)
     }
 
-    fn get_collection(&self) -> Collection {
-        self.connect().collection(self.collection.as_str())
+    fn get_collection(&self) -> Collection<BsonDocument> {
+        self.connect().collection_with_type(self.collection.as_str())
     }
 
     pub fn insert(&self, serializable: &impl Serialize) -> Result<bool, mongoError::Error> {
@@ -49,6 +53,21 @@ impl MongoDomain {
         match self.get_collection().insert_one(document, None) {
             Ok(_) => Ok(true),
             Err(error) => Err(error)
+        }
+    }
+
+    pub fn get_one_user(&self, id: ObjectId) -> Option<User> {
+        let item = self.get_collection()
+            .find_one(Some(doc! { "_id":  id }), None)
+            .unwrap();
+
+        match item {
+            Some(document) => {
+                let result: User = from_bson(Bson::Document(document)).unwrap();
+                Some(result)
+            },
+
+            None => None
         }
     }
 }

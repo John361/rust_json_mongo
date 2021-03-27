@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+    rust_mongo_development:
+        container_name: rust_mongo_development
+
+        build:
+            context: ./mongo
+            dockerfile: Dockerfile
+
+        volumes:
+            - /var/lib/db-docker/mongo/rust/development:/data/db
+            - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+
+        network_mode: "host"
